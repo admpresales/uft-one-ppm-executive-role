@@ -24,7 +24,7 @@ AIUtil.SetContext AppContext																'Tell the AI engine to point at the 
 AIUtil.FindText("Executive Overview").Click
 
 '===========================================================================================
-'BP:  Click the Executive Overview link
+'BP:  Click the Ron Steel (CIO) link to launch PPM as Ron Steel
 '===========================================================================================
 AIUtil.FindTextBlock("Ron Steel").Click
 AIUtil.FindText("Size of bubble indicates").Exist
