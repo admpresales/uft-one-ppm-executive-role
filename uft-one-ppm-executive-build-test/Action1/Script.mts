@@ -1,6 +1,7 @@
 ﻿'===========================================================================================
 '20200929 - DJ: Updated the step to click the Done button when looking into changing from the calculated risk to the 
 '			override value
+'20200929 - DJ: Updated improper syntax on the loop exit
 '===========================================================================================
 
 Dim BrowserExecutable, Counter
@@ -93,7 +94,7 @@ Do
 	If Counter >=90 Then
 		msgbox("Something is broken, status of the request hasn't shown up to be approved.")
 		Reporter.ReportEvent micFail, "Click the Done button", "The Done button click wasn't accepted within " & Counter & " seconds."
-		Loop
+		Exit Do
 	End If
 Loop While AIUtil("button", "Done").Exist
 AIUtil.FindText("Requirements Analysis").Exist
