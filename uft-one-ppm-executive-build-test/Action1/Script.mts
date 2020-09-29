@@ -99,7 +99,7 @@ Do
 		Reporter.ReportEvent micFail, "Click the down triangle for risk override", "The Override health text didn't display within " & Counter & " seconds."
 		Exit Do
 	End If
-Loop Until AIUtil.FindTextBlock("Override health").Exist
+Loop Until AIUtil.FindTextBlock("Override health").Exist(5)
 
 
 '===========================================================================================
