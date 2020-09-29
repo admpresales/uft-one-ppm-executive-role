@@ -3,6 +3,7 @@
 '			override value
 '20200929 - DJ: Updated improper syntax on the loop exit
 '20200929 - DJ: Added .sync statements after .click statements and additional tuning
+'20200929 - DJ: Added sync loop for clicking down arrow for risk override
 '===========================================================================================
 
 Dim BrowserExecutable, Counter
@@ -88,9 +89,18 @@ AIUtil.FindText("Requirements Analysis").Exist
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
 '===========================================================================================
-AIUtil("down_triangle", micNoText, micFromBottom, 1).Click
-AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindTextBlock("Override health").Exist
+Do
+	AIUtil("down_triangle", micNoText, micFromBottom, 1).Click
+	AppContext.Sync																				'Wait for the browser to stop spinning
+	Counter = Counter + 1
+	wait(1)
+	If Counter >=90 Then
+		msgbox("Something is broken, the project health override window hasn't opened.")
+		Reporter.ReportEvent micFail, "Click the down triangle for risk override", "The Override health text didn't display within " & Counter & " seconds."
+		Exit Do
+	End If
+Loop Until AIUtil.FindTextBlock("Override health").Exist
+
 
 '===========================================================================================
 'BP:  Click Done button
