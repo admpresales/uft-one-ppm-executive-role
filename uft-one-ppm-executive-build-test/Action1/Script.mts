@@ -89,6 +89,7 @@ AIUtil.FindText("Requirements Analysis").Exist
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
 '===========================================================================================
+Counter = 0
 Do
 	AIUtil("down_triangle", micNoText, micFromBottom, 1).Click
 	AppContext.Sync																				'Wait for the browser to stop spinning
