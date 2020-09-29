@@ -1,5 +1,9 @@
-﻿
-Dim BrowserExecutable
+﻿'===========================================================================================
+'20200929 - DJ: Updated the step to click the Done button when looking into changing from the calculated risk to the 
+'			override value
+'===========================================================================================
+
+Dim BrowserExecutable, Counter
 
 While Browser("CreationTime:=0").Exist(0)   												'Loop to close all open browsers
 	Browser("CreationTime:=0").Close 
@@ -81,7 +85,17 @@ AIUtil.FindTextBlock("Override health").Exist
 '===========================================================================================
 'BP:  Click Done button
 '===========================================================================================
-AIUtil("button", "Done").Click
+Counter = 0
+Do
+	AIUtil("button", "Done").Click
+	Counter = Counter + 1
+	wait(1)
+	If Counter >=90 Then
+		msgbox("Something is broken, status of the request hasn't shown up to be approved.")
+		Reporter.ReportEvent micFail, "Click the Done button", "The Done button click wasn't accepted within " & Counter & " seconds."
+		Loop
+	End If
+Loop While AIUtil("button", "Done").Exist
 AIUtil.FindText("Requirements Analysis").Exist
 
 '===========================================================================================
