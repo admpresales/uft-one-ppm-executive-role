@@ -4,7 +4,31 @@
 '20200929 - DJ: Updated improper syntax on the loop exit
 '20200929 - DJ: Added .sync statements after .click statements and additional tuning
 '20200929 - DJ: Added sync loop for clicking down arrow for risk override
+'20201001 - DJ: Added ClickLoop function to leverage it, removed duplicative code
+'			Added traditional OR click to force autoscroll if the resolution is too low on the UFT machine to have
+'			the 2nd verified dashboard to be displayed, plus changed the selection of the hamburger_menu to be VRI off
+'			of the dashboard title.
 '===========================================================================================
+
+Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
+	
+	Dim Counter
+	
+	Counter = 0
+	Do
+		ClickStatement.Click
+		AppContext.Sync																				'Wait for the browser to stop spinning
+		Counter = Counter + 1
+		wait(1)
+		If Counter >=90 Then
+			msgbox("Something is broken, the Requests hasn't shown up")
+			Reporter.ReportEvent micFail, "Click the Search text", "The Requests text didn't display within " & Counter & " attempts."
+			Exit Do
+		End If
+	Loop Until SuccessStatement.Exist(1)
+	AppContext.Sync																				'Wait for the browser to stop spinning
+
+End Function
 
 Dim BrowserExecutable, Counter
 
@@ -36,7 +60,9 @@ AppContext.Sync																				'Wait for the browser to stop spinning
 '===========================================================================================
 AIUtil.FindTextBlock("Ron Steel").Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindText("Size of bubble indicates").Exist
+If AIUtil.FindText("Size of bubble indicates").Exist = FALSE Then
+	Reporter.ReportEvent micFail, "Find the Size of bubble indicates text", "The text didn't display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
+End If
 
 '===========================================================================================
 'BP:  Hover over each Business Objective category to capture the changes in the Porfolio Scorecard
@@ -50,8 +76,13 @@ AIUtil.FindTextBlock("Cost Containment").Hover
 
 '===========================================================================================
 'BP:  Verify that the Budget by Business Objective dashboard element is displayed
+'		Added a traditional OR click on the dashboard name to force scroll if the 
+'		resolution of the machine is too small to have the hamburger menu be displayed
 '===========================================================================================
-AIUtil("hamburger_menu", micNoText, micFromBottom, 1).Click
+Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Budget by Business Objective (This Year)").Click
+Set TextAnchor = AIUtil.FindText("Budget by Business Objective (This Year)")				'Set the IconAnchor to be the profile icon
+Set ValueAnchor = AIUtil("hamburger_menu", micNoText, micWithAnchorOnLeft, TextAnchor)				'Set the Value field to be an "input" field, with any text, with the IconAnchor to its left
+ValueAnchor.Click
 AppContext.Sync																				'Wait for the browser to stop spinning
 AIUtil.FindTextBlock("Maximize").Click
 AppContext.Sync																				'Wait for the browser to stop spinning
@@ -89,36 +120,16 @@ AIUtil.FindText("Requirements Analysis").Exist
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
 '===========================================================================================
-Counter = 0
-Do
-	AIUtil("down_triangle", micNoText, micFromBottom, 1).Click
-	AppContext.Sync																				'Wait for the browser to stop spinning
-	Counter = Counter + 1
-	wait(1)
-	If Counter >=90 Then
-		msgbox("Something is broken, the project health override window hasn't opened.")
-		Reporter.ReportEvent micFail, "Click the down triangle for risk override", "The Override health text didn't display within " & Counter & " seconds."
-		Exit Do
-	End If
-Loop Until AIUtil.FindTextBlock("Override health").Exist(5)
-
+Set ClickStatement = AIUtil("down_triangle", micNoText, micFromBottom, 1)
+Set SuccessStatement = AIUtil.FindTextBlock("Override health")
+ClickLoop AppContext, ClickStatement, SuccessStatement
 
 '===========================================================================================
 'BP:  Click Done button
 '===========================================================================================
-Counter = 0
-Do
-	AIUtil("button", "Done").Click
-	Counter = Counter + 1
-	wait(1)
-	If Counter >=90 Then
-		msgbox("Something is broken, status of the request hasn't shown up to be approved.")
-		Reporter.ReportEvent micFail, "Click the Done button", "The Done button click wasn't accepted within " & Counter & " seconds."
-		Exit Do
-	End If
-Loop While AIUtil("button", "Done").Exist(1)
-AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindText("Requirements Analysis").Exist
+Set ClickStatement = AIUtil("button", "Done")
+Set SuccessStatement = AIUtil.FindText("Requirements Analysis")
+ClickLoop AppContext, ClickStatement, SuccessStatement
 
 '===========================================================================================
 'BP:  Logout.  Use traditional OR
