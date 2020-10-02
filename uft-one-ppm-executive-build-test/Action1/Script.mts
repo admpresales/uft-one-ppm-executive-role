@@ -8,6 +8,7 @@
 '			Added traditional OR click to force autoscroll if the resolution is too low on the UFT machine to have
 '			the 2nd verified dashboard to be displayed, plus changed the selection of the hamburger_menu to be VRI off
 '			of the dashboard title.
+'20201001 - DJ: Updated manual reporter event error handling
 '===========================================================================================
 
 Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
@@ -60,9 +61,13 @@ AppContext.Sync																				'Wait for the browser to stop spinning
 '===========================================================================================
 AIUtil.FindTextBlock("Ron Steel").Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-If AIUtil.FindText("Size of bubble indicates").Exist = FALSE Then
+If AIUtil.FindText("Size of bubble indicates").Exist Then
+	Reporter.ReportEvent micPass, "Find the Size of bubble indicates text", "The text did display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
+Else 
 	Reporter.ReportEvent micFail, "Find the Size of bubble indicates text", "The text didn't display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
 End If
+
+
 
 '===========================================================================================
 'BP:  Hover over each Business Objective category to capture the changes in the Porfolio Scorecard
