@@ -9,6 +9,7 @@
 '			the 2nd verified dashboard to be displayed, plus changed the selection of the hamburger_menu to be VRI off
 '			of the dashboard title.
 '20201001 - DJ: Updated manual reporter event error handling
+'20201001 - DJ: Updated manual reporter event error handling, shortened the text find for efficiency
 '===========================================================================================
 
 Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
@@ -60,11 +61,13 @@ AppContext.Sync																				'Wait for the browser to stop spinning
 'BP:  Click the Ron Steel (CIO) link to launch PPM as Ron Steel
 '===========================================================================================
 AIUtil.FindTextBlock("Ron Steel").Click
-AppContext.Sync																				'Wait for the browser to stop spinning
-If AIUtil.FindText("Size of bubble indicates").Exist Then
-	Reporter.ReportEvent micPass, "Find the Size of bubble indicates text", "The text did display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
+AppContext.Sync	
+AIUtil.FindTextBlock("(Size of bubble indicates: Projected Cost)").Click
+																			'Wait for the browser to stop spinning
+If AIUtil.FindText("bubble").Exist Then
+	Reporter.ReportEvent micPass, "Find the bubble text", "The text did display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
 Else 
-	Reporter.ReportEvent micFail, "Find the Size of bubble indicates text", "The text didn't display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
+	Reporter.ReportEvent micFail, "Find the bubble text", "The text didn't display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
 End If
 
 
