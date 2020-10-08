@@ -10,6 +10,11 @@
 '			of the dashboard title.
 '20201001 - DJ: Updated manual reporter event error handling
 '20201001 - DJ: Updated manual reporter event error handling, shortened the text find for efficiency
+'20201008 - DJ: Updated to use traditional OR for Budget by Business Objective Hamburger Menu as on some lower resolutions, the
+'				hamburger_menu object isn't being seen by the AI engine.  Additionally, you can have the hamburger menu item displayed
+'				but when clicked, the Maximize could be off of the screen.  The Maximize will be able to be changed back to AI when
+'				autoscroll option is added in a future version of UFT One.  Lastly, the down triangle at the end, depending on the 
+'				resolution might, or might not be the lowest visible down triangle, replaced with traditional OR.
 '===========================================================================================
 
 Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
@@ -87,12 +92,14 @@ AIUtil.FindTextBlock("Cost Containment").Hover
 '		Added a traditional OR click on the dashboard name to force scroll if the 
 '		resolution of the machine is too small to have the hamburger menu be displayed
 '===========================================================================================
-Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Budget by Business Objective (This Year)").Click
-Set TextAnchor = AIUtil.FindText("Budget by Business Objective (This Year)")				'Set the IconAnchor to be the profile icon
-Set ValueAnchor = AIUtil("hamburger_menu", micNoText, micWithAnchorOnLeft, TextAnchor)				'Set the Value field to be an "input" field, with any text, with the IconAnchor to its left
-ValueAnchor.Click
+'Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Budget by Business Objective (This Year)").Click
+Browser("Project Overview").Page("Dashboard - Overview Dashboard").Image("Budget by Business Objective Hamburger Menu").Click
+'Set TextAnchor = AIUtil.FindText("Budget by Business Objective (This Year)")				'Set the IconAnchor to be the profile icon
+'Set ValueAnchor = AIUtil("hamburger_menu", micNoText, micWithAnchorOnLeft, TextAnchor)				'Set the Value field to be an "input" field, with any text, with the IconAnchor to its left
+'ValueAnchor.Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindTextBlock("Maximize").Click
+Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Maximize").Click
+'AIUtil.FindTextBlock("Maximize").Click
 AppContext.Sync																				'Wait for the browser to stop spinning
 
 '===========================================================================================
@@ -128,9 +135,10 @@ AIUtil.FindText("Requirements Analysis").Exist
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
 '===========================================================================================
-Set ClickStatement = AIUtil("down_triangle", micNoText, micFromBottom, 1)
-Set SuccessStatement = AIUtil.FindTextBlock("Override health")
-ClickLoop AppContext, ClickStatement, SuccessStatement
+'Set ClickStatement = AIUtil("down_triangle", micNoText, micFromBottom, 1)
+'Set SuccessStatement = AIUtil.FindTextBlock("Override health")
+'ClickLoop AppContext, ClickStatement, SuccessStatement
+Browser("Project Overview").Page("Project Overview").WebElement("Down Triangle").Click
 
 '===========================================================================================
 'BP:  Click Done button

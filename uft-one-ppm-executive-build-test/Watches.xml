@@ -1,3 +1,5 @@
 ﻿<Properties>
   <WatchEntry0 value="AIUtil.FindText(&quot;bubble&quot;).Exist" />
+  <WatchEntry1 value="AIUtil.FindText(&quot;Budget by Business Objective (This Year)&quot;).Exist" />
+  <WatchEntry2 value="AIUtil(&quot;hamburger_menu&quot;, micNoText, micWithAnchorOnLeft, TextAnchor).Exist" />
 </Properties>
