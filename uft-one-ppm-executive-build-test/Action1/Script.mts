@@ -15,6 +15,8 @@
 '				but when clicked, the Maximize could be off of the screen.  The Maximize will be able to be changed back to AI when
 '				autoscroll option is added in a future version of UFT One.  Lastly, the down triangle at the end, depending on the 
 '				resolution might, or might not be the lowest visible down triangle, replaced with traditional OR.
+'20201020 - DJ: Updated to handle changes coming in UFT One 15.0.2
+'				Commented out the msgbox, which can cause UFT One to be in a locked state when executed from Jenkins
 '===========================================================================================
 
 Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
@@ -28,16 +30,16 @@ Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 		Counter = Counter + 1
 		wait(1)
 		If Counter >=90 Then
-			msgbox("Something is broken, the Requests hasn't shown up")
+			'msgbox("Something is broken, the Requests hasn't shown up")
 			Reporter.ReportEvent micFail, "Click the Search text", "The Requests text didn't display within " & Counter & " attempts."
 			Exit Do
 		End If
-	Loop Until SuccessStatement.Exist(1)
+	Loop Until SuccessStatement.Exist(10)
 	AppContext.Sync																				'Wait for the browser to stop spinning
 
 End Function
 
-Dim BrowserExecutable, Counter
+Dim BrowserExecutable, Counter, rc
 
 While Browser("CreationTime:=0").Exist(0)   												'Loop to close all open browsers
 	Browser("CreationTime:=0").Close 
@@ -130,7 +132,7 @@ AppContext.Sync																				'Wait for the browser to stop spinning
 '===========================================================================================
 AIUtil.FindTextBlock("Marketing WebPortaI V2").Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindText("Requirements Analysis").Exist
+rc = AIUtil.FindText("Requirements Analysis").Exist
 
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
