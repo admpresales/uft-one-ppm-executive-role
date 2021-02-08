@@ -19,7 +19,34 @@
 '				Commented out the msgbox, which can cause UFT One to be in a locked state when executed from Jenkins
 '20201022 - DJ: Updated ClickLoop to gracefully abort if failure number reached
 '				Updated failure abort to be 3 instead of 90
+'20210208 - DJ: You can use the public PPM demo http://ppmdemo.mfadvantageinc.com/menu.html and this will work, edit data table if you want to run against nimbusserver
+'				Added logic to enumerate handled browsers, script as is will fail on 2nd iteration on purpose
+'				Updated to exclusively use AI-based object recognition, script will no longer function in 15.0.1
+'				Working with R&D on autoscroll issue, uncomment the commented code if it fails.
 '===========================================================================================
+
+Public Function Logout
+	'===========================================================================================
+	'BP:  Logout
+	'===========================================================================================
+	AIUtil.RunSettings.AutoScroll.Enable "up", 10
+	If AIUtil("profile").Exist(0) Then
+		AIUtil("profile").Click
+	Else
+		AIUtil("profile", micAnyText, micFromTop, 1).Click
+	End If
+	AIUtil.RunSettings.AutoScroll.Enable "down", 2
+	AppContext.Sync																				'Wait for the browser to stop spinning
+	If AIUtil.FindText("Sign Out").Exist(0) Then
+		AIUtil.FindText("Sign Out").Click
+	Else
+		AIUtil.FindText("Sign Out", micFromTop, 1).Click
+	End If
+	AppContext.Sync																				'Wait for the browser to stop spinning
+	
+	AppContext.Close																			'Close the application at the end of your script
+
+End Function
 
 Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 	
@@ -32,18 +59,8 @@ Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 		Counter = Counter + 1
 		wait(1)
 		If Counter >=3 Then
-			Reporter.ReportEvent micFail, "Click Statement", "The Success Statement didn't display within " & Counter & " attempts.  Aborting run"
-			'===========================================================================================
-			'BP:  Logout
-			'===========================================================================================
-			AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
-			Browser("Search Requests").Page("Req Details").WebElement("menuUserIcon").Click
-			AppContext.Sync																				'Wait for the browser to stop spinning
-			AIUtil.FindText("Sign Out (").Click
-			AppContext.Sync																				'Wait for the browser to stop spinning
-			While Browser("CreationTime:=0").Exist(0)   												'Loop to close all open browsers
-				Browser("CreationTime:=0").Close 
-			Wend
+			Reporter.ReportEvent micFail, "Click Statement", "The Success Statement '" & SuccessStatement & "' didn't display within " & Counter & " attempts.  Aborting action"
+			Logout
 			ExitAction
 		End If
 	Loop Until SuccessStatement.Exist(10)
@@ -51,11 +68,25 @@ Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 
 End Function
 
+
 Dim BrowserExecutable, Counter, rc
 
 While Browser("CreationTime:=0").Exist(0)   												'Loop to close all open browsers
 	Browser("CreationTime:=0").Close 
 Wend
+
+Select Case DataTable.Value("BrowserName")
+	Case "IEXPLORE"
+		Reporter.ReportEvent micPass, "Browser Support", "The browser '" & DataTable.Value("BrowserName") & "' is supported, proceeding."
+	Case "CHROME"
+		Reporter.ReportEvent micPass, "Browser Support", "The browser '" & DataTable.Value("BrowserName") & "' is supported, proceeding."
+	Case "FIREFOX"
+		Reporter.ReportEvent micPass, "Browser Support", "The browser '" & DataTable.Value("BrowserName") & "' is supported, proceeding."
+	Case Else
+		Reporter.ReportEvent micFail, "Browser Support", "The browser '" & DataTable.Value("BrowserName") & "' is not supported, aborting action."
+		ExitAction
+End Select
+
 BrowserExecutable = DataTable.Value("BrowserName") & ".exe"
 SystemUtil.Run BrowserExecutable,"","","",3													'launch the browser specified in the data table
 Set AppContext=Browser("CreationTime:=0")													'Set the variable for what application (in this case the browser) we are acting upon
@@ -81,15 +112,12 @@ AppContext.Sync																				'Wait for the browser to stop spinning
 '===========================================================================================
 AIUtil.FindTextBlock("Ron Steel").Click
 AppContext.Sync	
-AIUtil.FindTextBlock("(Size of bubble indicates: Projected Cost)").Click
 																			'Wait for the browser to stop spinning
-If AIUtil.FindText("bubble").Exist Then
+If AIUtil.FindText("bubble").Exist(20) Then
 	Reporter.ReportEvent micPass, "Find the bubble text", "The text did display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
 Else 
 	Reporter.ReportEvent micFail, "Find the bubble text", "The text didn't display within the default .Exist timeout, this means that the Porfolio Dashboard portlet didn't load"
 End If
-
-
 
 '===========================================================================================
 'BP:  Hover over each Business Objective category to capture the changes in the Porfolio Scorecard
@@ -106,15 +134,30 @@ AIUtil.FindTextBlock("Cost Containment").Hover
 '		Added a traditional OR click on the dashboard name to force scroll if the 
 '		resolution of the machine is too small to have the hamburger menu be displayed
 '===========================================================================================
-'Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Budget by Business Objective (This Year)").Click
-Browser("Project Overview").Page("Dashboard - Overview Dashboard").Image("Budget by Business Objective Hamburger Menu").Click
-'Set TextAnchor = AIUtil.FindText("Budget by Business Objective (This Year)")				'Set the IconAnchor to be the profile icon
-'Set ValueAnchor = AIUtil("hamburger_menu", micNoText, micWithAnchorOnLeft, TextAnchor)				'Set the Value field to be an "input" field, with any text, with the IconAnchor to its left
-'ValueAnchor.Click
+'Counter = 0
+'While AIUtil("hamburger_menu", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock("Budget by Business Objective (This Year)")).Exist(0) = FALSE
+'	Counter = Counter + 1
+'	wait(1)
+'	If Counter >=3 Then
+'		Reporter.ReportEvent micFail, "Click Budget by Business Objective (This Year) Button", "The button didn't display within " & Counter & " attempts.  Aborting run."
+'		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
+'		ExitIteration
+'	End  If
+'Wend
+AIUtil("hamburger_menu", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock("Budget by Business Objective (This Year)")).Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-Browser("Project Overview").Page("Dashboard - Overview Dashboard").WebElement("Maximize").Click
-'AIUtil.FindTextBlock("Maximize").Click
-AppContext.Sync																				'Wait for the browser to stop spinning
+'Counter = 0
+'While AIUtil.FindTextBlock("Maximize").Exist(0) = FALSE
+'	Counter = Counter + 1
+'	wait(1)
+'	If Counter >=3 Then
+'		Reporter.ReportEvent micFail, "Click Maximize Button", "The Maximize text didn't display within " & Counter & " attempts.  Aborting run."
+'		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
+'		ExitIteration
+'	End  If
+'Wend
+AIUtil.FindTextBlock("Maximize").Click	
+AppContext.Sync
 
 '===========================================================================================
 'BP:  Hover over each Business Objective category to capture the changes in the Porfolio Scorecard
@@ -149,10 +192,7 @@ rc = AIUtil.FindText("Requirements Analysis").Exist
 '===========================================================================================
 'BP:  Click the down triangle to show you could override the calculated health
 '===========================================================================================
-'Set ClickStatement = AIUtil("down_triangle", micNoText, micFromBottom, 1)
-'Set SuccessStatement = AIUtil.FindTextBlock("Override health")
-'ClickLoop AppContext, ClickStatement, SuccessStatement
-Browser("Project Overview").Page("Project Overview").WebElement("Down Triangle").Click
+AIUtil("down_triangle", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock(micAnyText, micWithAnchorAbove, AIUtil.FindTextBlock("Calculated health"))).Click
 
 '===========================================================================================
 'BP:  Click Done button
@@ -162,11 +202,21 @@ Set SuccessStatement = AIUtil.FindText("Requirements Analysis")
 ClickLoop AppContext, ClickStatement, SuccessStatement
 
 '===========================================================================================
-'BP:  Logout.  Use traditional OR
+'BP:  Logout
 '===========================================================================================
-Browser("Project Overview").Page("Project Overview").WebElement("menuUserIcon").Click
+AIUtil.RunSettings.AutoScroll.Enable "up", 10
+If AIUtil("profile").Exist(0) Then
+	AIUtil("profile").Click
+Else
+	AIUtil("profile", micAnyText, micFromTop, 1).Click
+End If
+AIUtil.RunSettings.AutoScroll.Enable "down", 2
 AppContext.Sync																				'Wait for the browser to stop spinning
-AIUtil.FindTextBlock("Sign Out (Ronald Steel)").Click
+If AIUtil.FindText("Sign Out").Exist(0) Then
+	AIUtil.FindText("Sign Out").Click
+Else
+	AIUtil.FindText("Sign Out", micFromTop, 1).Click
+End If
 AppContext.Sync																				'Wait for the browser to stop spinning
 
 AppContext.Close																			'Close the application at the end of your script
