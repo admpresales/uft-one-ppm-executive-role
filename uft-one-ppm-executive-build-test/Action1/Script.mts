@@ -25,6 +25,7 @@
 '				Working with R&D on autoscroll issue, uncomment the commented code if it fails.
 '20210209 - DJ: R&D determined that the root cause of the autoscroll issue is PPM has a W3C violation, they will research how to have UFT AI autoscroll work in this circumstance
 '				Updated to point back to the Nimbus instance of PPM and uncommented the workaround code.
+'20210209 - DJ: Updated to start the mediaserver service on the UFT One host machine if it isn't running
 '===========================================================================================
 
 Public Function Logout
@@ -70,7 +71,11 @@ Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 
 End Function
 
-Dim BrowserExecutable, Counter, rc
+Dim BrowserExecutable, Counter, rc, oShell
+
+Set oShell = CreateObject ("WSCript.shell")
+oShell.run "powershell -command ""Start-Service mediaserver"""
+Set oShell = Nothing
 
 While Browser("CreationTime:=0").Exist(0)   												'Loop to close all open browsers
 	Browser("CreationTime:=0").Close 
