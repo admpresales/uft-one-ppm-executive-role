@@ -23,6 +23,8 @@
 '				Added logic to enumerate handled browsers, script as is will fail on 2nd iteration on purpose
 '				Updated to exclusively use AI-based object recognition, script will no longer function in 15.0.1
 '				Working with R&D on autoscroll issue, uncomment the commented code if it fails.
+'20210209 - DJ: R&D determined that the root cause of the autoscroll issue is PPM has a W3C violation, they will research how to have UFT AI autoscroll work in this circumstance
+'				Updated to point back to the Nimbus instance of PPM and uncommented the workaround code.
 '===========================================================================================
 
 Public Function Logout
@@ -67,7 +69,6 @@ Function ClickLoop (AppContext, ClickStatement, SuccessStatement)
 	AppContext.Sync																				'Wait for the browser to stop spinning
 
 End Function
-
 
 Dim BrowserExecutable, Counter, rc
 
@@ -131,31 +132,30 @@ AIUtil.FindTextBlock("Cost Containment").Hover
 
 '===========================================================================================
 'BP:  Verify that the Budget by Business Objective dashboard element is displayed
-'		Added a traditional OR click on the dashboard name to force scroll if the 
-'		resolution of the machine is too small to have the hamburger menu be displayed
+'		This has the workaround code if the application isn't following W3C standards
 '===========================================================================================
-'Counter = 0
-'While AIUtil("hamburger_menu", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock("Budget by Business Objective (This Year)")).Exist(0) = FALSE
-'	Counter = Counter + 1
-'	wait(1)
-'	If Counter >=3 Then
-'		Reporter.ReportEvent micFail, "Click Budget by Business Objective (This Year) Button", "The button didn't display within " & Counter & " attempts.  Aborting run."
-'		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
-'		ExitIteration
-'	End  If
-'Wend
+Counter = 0
+While AIUtil("hamburger_menu", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock("Budget by Business Objective (This Year)")).Exist(0) = FALSE
+	Counter = Counter + 1
+	wait(1)
+	If Counter >=3 Then
+		Reporter.ReportEvent micFail, "Click Budget by Business Objective (This Year) Button", "The button didn't display within " & Counter & " attempts.  Aborting run."
+		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
+		ExitIteration
+	End  If
+Wend
 AIUtil("hamburger_menu", micAnyText, micWithAnchorOnLeft, AIUtil.FindTextBlock("Budget by Business Objective (This Year)")).Click
 AppContext.Sync																				'Wait for the browser to stop spinning
-'Counter = 0
-'While AIUtil.FindTextBlock("Maximize").Exist(0) = FALSE
-'	Counter = Counter + 1
-'	wait(1)
-'	If Counter >=3 Then
-'		Reporter.ReportEvent micFail, "Click Maximize Button", "The Maximize text didn't display within " & Counter & " attempts.  Aborting run."
-'		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
-'		ExitIteration
-'	End  If
-'Wend
+Counter = 0
+While AIUtil.FindTextBlock("Maximize").Exist(0) = FALSE
+	Counter = Counter + 1
+	wait(1)
+	If Counter >=3 Then
+		Reporter.ReportEvent micFail, "Click Maximize Button", "The Maximize text didn't display within " & Counter & " attempts.  Aborting run."
+		AIUtil.SetContext AppContext																'Tell the AI engine to point at the application
+		ExitIteration
+	End  If
+Wend
 AIUtil.FindTextBlock("Maximize").Click	
 AppContext.Sync
 
@@ -203,6 +203,7 @@ ClickLoop AppContext, ClickStatement, SuccessStatement
 
 '===========================================================================================
 'BP:  Logout
+'		This does not have the autoscroll workaround code, assumes application is following W3C standards
 '===========================================================================================
 AIUtil.RunSettings.AutoScroll.Enable "up", 10
 If AIUtil("profile").Exist(0) Then
